@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>个人树洞</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 40px;
+        min-height: 100vh;
+    }
+    @keyframes gradientBG {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+    }
+    .container {
+        width: 90%;
+        max-width: 800px;
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.35);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    .editor {
+        margin-bottom: 30px;
+    }
+    .editor input, .editor textarea, #content, #mood-input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.5);
+        color: #333;
+        outline: none;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+    .toolbar button, .editor button, .form-controls button {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .toolbar button:hover, .editor button:hover, .form-controls button:hover {
+        background: rgba(255,255,255,0.8);
+        transform: translateY(-1px);
+    }
+    #imageUpload {
+        margin-bottom: 15px;
+    }
+    .post {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(255,255,255,0.4);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    .post-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .post-header .emoji-tag {
+        font-size: 24px;
+        margin-right: 12px;
+        background-color: rgba(255, 255, 255, 0.5);
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    .username {
+        font-weight: bold;
+    }
+    .post-content img {
+        max-width: 100%;
+        margin-top: 12px;
+        border-radius: 12px;
+    }
+    .comments {
+        margin-top: 10px;
+        padding-left: 15px;
+        border-left: 2px solid rgba(255,255,255,0.3);
+    }
+    .comment {
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .comment-text {
+        word-break: break-all;
+    }
+    button.like, button.delete-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        flex-shrink: 0;
+        margin-left: 10px;
+    }
+    button.like { color: #007BFF; }
+    button.delete-btn { color: #f44336; }
+    #no-posts {
+        text-align: center;
+        color: rgba(0,0,0,0.6);
+        padding: 20px;
+        font-style: italic;
+    }
+    .mood-post .post-content {
+        font-size: 28px;
+        text-align: center;
+        padding: 20px 0;
+    }
+    .form-controls {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    .form-controls select {
+        padding: 8px 14px;
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+    .post-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin-top: 15px;
+    }
+    .post-delete-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #aaa;
+    }
+    .post-delete-btn:hover {
+        color: #f44336;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="editor">
+        <input type="text" id="title" placeholder="标题">
+        <input type="text" id="username" placeholder="用户名">
+        <div class="toolbar">
+            <button onclick="formatText('bold')">加粗</button>
+            <button onclick="formatText('italic')">斜体</button>
+            <button onclick="formatText('strikeThrough')">划线</button>
+        </div>
+        <div id="content" contenteditable="true" style="min-height:100px;"></div>
+        <input type="file" id="imageUpload" accept="image/*">
+        <div class="form-controls">
+            <select id="emoji-tag-select">
+                <option value="">选择标签...</option>
+                <option value="🤡">🤡 JOKE</option>
+                <option value="😂">😂 好笑</option>
+                <option value="😱">😱 震惊</option>
+                <option value="❤️">❤️ 喜欢</option>
+                <option value="😢">😢 伤心</option>
+                <option value="🤔">🤔 思考</option>
+            </select>
+            <button onclick="publishPost()">发布长文</button>
+        </div>
+    </div>
+    
+    <div class="editor">
+         <div class="form-controls">
+            <input type="text" id="mood-input" placeholder="丢一个 Emoji 心情 (不超过5个字)..." maxlength="5">
+            <button onclick="publishMood()">发布心情</button>
+        </div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.4); margin: 30px 0;">
+
+    <div id="posts">
+        </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // ---- DATA MANAGEMENT ---- //
+    let posts = [];
+    let myPostIds = [];
+
+    function loadData() {
+        posts = JSON.parse(localStorage.getItem('treehole_posts')) || [];
+        myPostIds = JSON.parse(localStorage.getItem('treehole_myPostIds')) || [];
+        renderPosts();
+    }
+
+    function saveData() {
+        localStorage.setItem('treehole_posts', JSON.stringify(posts));
+        localStorage.setItem('treehole_myPostIds', JSON.stringify(myPostIds));
+    }
+
+    // ---- RENDERING ---- //
+    function renderPosts() {
+        const postsContainer = document.getElementById('posts');
+        postsContainer.innerHTML = ''; // Clear existing posts
+
+        if (posts.length === 0) {
+            postsContainer.innerHTML = '<div id="no-posts">暂无内容，快来发布你的第一条树洞吧~</div>';
+            return;
+        }
+
+        // 倒序显示，新的在前面
+        [...posts].reverse().forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.classList.add('post');
+            postElement.dataset.id = post.id;
+            
+            // 根据是否是心情，应用不同样式
+            if (post.isMood) {
+                postElement.classList.add('mood-post');
+            }
+
+            // 删除按钮
+            const deleteBtnHTML = myPostIds.includes(post.id) ? 
+                `<button class="post-delete-btn" onclick="deletePost('${post.id}')">✖</button>` : '';
+
+            // 评论HTML
+            const commentsHTML = post.comments.map(comment => `
+                <div class="comment" data-id="${comment.id}">
+                    <span class="comment-text">${comment.text}</span>
+                    <span>
+                        <button class="like" onclick="likeComment('${post.id}', '${comment.id}')">👍 ${comment.likes}</button>
+                        ${myPostIds.includes(comment.id) ? `<button class="delete-btn" onclick="deleteComment('${post.id}', '${comment.id}')">删除</button>` : ''}
+                    </span>
+                </div>
+            `).join('');
+
+            const postHTML = `
+                ${deleteBtnHTML}
+                ${post.isMood ? '' : `
+                <div class="post-header">
+                    ${post.tag ? `<span class="emoji-tag">${post.tag}</span>` : ''}
+                    <img class="avatar" src="https://i.pravatar.cc/40?u=${post.username}" alt="avatar">
+                    <span class="username">${post.username}</span>
+                </div>
+                <h3>${post.title}</h3>
+                `}
+                <div class="post-content">${post.content}${post.image || ''}</div>
+                <div class="post-actions">
+                    <button class="like" onclick="likePost('${post.id}')">👍 ${post.likes}</button>
+                </div>
+                <div class="comments">${commentsHTML}</div>
+                <input type="text" placeholder="写评论..." onkeydown="if(event.key==='Enter' && this.value.trim()){addComment(this, '${post.id}')}">
+            `;
+            
+            postElement.innerHTML = postHTML;
+            postsContainer.appendChild(postElement);
+        });
+    }
+
+    // ---- ACTIONS ---- //
+    window.formatText = function(command) {
+        document.execCommand(command, false, null);
+    }
+    
+    // 发布长文
+    window.publishPost = function() {
+        const title = document.getElementById('title').value || '无标题';
+        const username = document.getElementById('username').value || '匿名';
+        const content = document.getElementById('content').innerHTML;
+        const tag = document.getElementById('emoji-tag-select').value;
+        const fileInput = document.getElementById('imageUpload');
+
+        if (!content.trim() && (!fileInput.files || !fileInput.files[0])) {
+            alert('请输入内容或上传图片');
+            return;
+        }
+
+        const newPost = {
+            id: 'post_' + Date.now(),
+            title,
+            username,
+            content,
+            tag,
+            image: '',
+            likes: 0,
+            comments: [],
+            isMood: false
+        };
+
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                newPost.image = `<img src="${e.target.result}">`;
+                addPostToList(newPost);
+            }
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            addPostToList(newPost);
+        }
+    }
+
+    // 发布心情
+    window.publishMood = function() {
+        const moodText = document.getElementById('mood-input').value.trim();
+        if (!moodText) {
+            alert('请输入你的心情');
+            return;
+        }
+        const newMood = {
+            id: 'post_' + Date.now(),
+            content: moodText,
+            likes: 0,
+            comments: [],
+            isMood: true
+        };
+        addPostToList(newMood);
+        document.getElementById('mood-input').value = '';
+    }
+    
+    function addPostToList(post) {
+        posts.push(post);
+        myPostIds.push(post.id);
+        saveData();
+        renderPosts();
+
+        // 清空输入框
+        document.getElementById('title').value = '';
+        document.getElementById('username').value = '';
+        document.getElementById('content').innerHTML = '';
+        document.getElementById('imageUpload').value = '';
+        document.getElementById('emoji-tag-select').value = '';
+    }
+
+    window.addComment = function(input, postId) {
+        const text = input.value.trim();
+        if (!text) return;
+        
+        const newComment = {
+            id: 'comment_' + Date.now(),
+            text: text,
+            likes: 0
+        };
+
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.comments.push(newComment);
+            myPostIds.push(newComment.id); // 记录自己的评论ID
+            saveData();
+            renderPosts();
+        }
+        input.value = '';
+    }
+
+    window.deletePost = function(postId) {
+        if (!confirm('确定要删除这篇内容吗？')) return;
+        posts = posts.filter(p => p.id !== postId);
+        myPostIds = myPostIds.filter(id => id !== postId);
+        saveData();
+        renderPosts();
+    }
+
+    window.deleteComment = function(postId, commentId) {
+        if (!confirm('确定要删除这条评论吗？')) return;
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.comments = post.comments.filter(c => c.id !== commentId);
+            myPostIds = myPostIds.filter(id => id !== commentId);
+            saveData();
+            renderPosts();
+        }
+    }
+
+    window.likePost = function(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.likes++;
+            saveData();
+            renderPosts();
+        }
+    }
+
+    window.likeComment = function(postId, commentId) {
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            const comment = post.comments.find(c => c.id === commentId);
+            if (comment) {
+                comment.likes++;
+                saveData();
+                renderPosts();
+            }
+        }
+    }
+
+    // ---- INITIALIZATION ---- //
+    loadData();
+});
+</script>
+</body>
+</html>
